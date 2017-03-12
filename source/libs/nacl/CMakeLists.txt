@@ -1,0 +1,83 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+set(PPAPI_CPP_SRC
+  src/ppapi_cpp/array_output.cc
+  src/ppapi_cpp/audio.cc
+  src/ppapi_cpp/audio_buffer.cc
+  src/ppapi_cpp/audio_config.cc
+  src/ppapi_cpp/audio_encoder.cc
+  src/ppapi_cpp/compositor.cc
+  src/ppapi_cpp/compositor_layer.cc
+  src/ppapi_cpp/core.cc
+  src/ppapi_cpp/cursor_control_dev.cc
+  src/ppapi_cpp/directory_entry.cc
+  src/ppapi_cpp/file_chooser_dev.cc
+  src/ppapi_cpp/file_io.cc
+  src/ppapi_cpp/file_ref.cc
+  src/ppapi_cpp/file_system.cc
+  src/ppapi_cpp/fullscreen.cc
+  src/ppapi_cpp/graphics_2d.cc
+  src/ppapi_cpp/graphics_3d.cc
+  src/ppapi_cpp/graphics_3d_client.cc
+  src/ppapi_cpp/host_resolver.cc
+  src/ppapi_cpp/image_data.cc
+  src/ppapi_cpp/input_event.cc
+  src/ppapi_cpp/instance.cc
+  src/ppapi_cpp/instance_handle.cc
+  src/ppapi_cpp/lock.cc
+  src/ppapi_cpp/media_stream_audio_track.cc
+  src/ppapi_cpp/media_stream_video_track.cc
+  src/ppapi_cpp/memory_dev.cc
+  src/ppapi_cpp/message_loop.cc
+  src/ppapi_cpp/module.cc
+  src/ppapi_cpp/mouse_cursor.cc
+  src/ppapi_cpp/mouse_lock.cc
+  src/ppapi_cpp/net_address.cc
+  src/ppapi_cpp/network_list.cc
+  src/ppapi_cpp/network_monitor.cc
+  src/ppapi_cpp/network_proxy.cc
+  src/ppapi_cpp/paint_aggregator.cc
+  src/ppapi_cpp/paint_manager.cc
+  src/ppapi_cpp/ppp_entrypoints.cc
+  src/ppapi_cpp/printing_dev.cc
+  src/ppapi_cpp/rect.cc
+  src/ppapi_cpp/resource.cc
+  src/ppapi_cpp/scriptable_object_deprecated.cc
+  src/ppapi_cpp/simple_thread.cc
+  src/ppapi_cpp/tcp_socket.cc
+  src/ppapi_cpp/text_input_controller.cc
+  src/ppapi_cpp/truetype_font_dev.cc
+  src/ppapi_cpp/udp_socket.cc
+  src/ppapi_cpp/url_loader.cc
+  src/ppapi_cpp/url_request_info.cc
+  src/ppapi_cpp/url_response_info.cc
+  src/ppapi_cpp/var.cc
+  src/ppapi_cpp/var_array.cc
+  src/ppapi_cpp/var_array_buffer.cc
+  src/ppapi_cpp/var_dictionary.cc
+  src/ppapi_cpp/video_decoder.cc
+  src/ppapi_cpp/video_encoder.cc
+  src/ppapi_cpp/video_frame.cc
+  src/ppapi_cpp/view.cc
+  src/ppapi_cpp/view_dev.cc
+  src/ppapi_cpp/websocket.cc
+  src/ppapi_cpp/websocket_api.cc
+)
+add_library(ppapi_cpp STATIC ${PPAPI_CPP_SRC})
+
+set(PPAPI_CPP_PRIVATE_SRC
+  src/ppapi_cpp_private/ext_crx_file_system_private.cc
+  src/ppapi_cpp_private/file_io_private.cc
+  src/ppapi_cpp_private/host_resolver_private.cc
+  src/ppapi_cpp_private/isolated_file_system_private.cc
+  src/ppapi_cpp_private/net_address_private.cc
+  src/ppapi_cpp_private/output_protection_private.cc
+  src/ppapi_cpp_private/pass_file_handle.cc
+  src/ppapi_cpp_private/tcp_server_socket_private.cc
+  src/ppapi_cpp_private/tcp_socket_private.cc
+  src/ppapi_cpp_private/udp_socket_private.cc
+  src/ppapi_cpp_private/uma_private.cc
+  src/ppapi_cpp_private/x509_certificate_private.cc
+)
+add_library(ppapi_cpp_private STATIC ${PPAPI_CPP_PRIVATE_SRC})
