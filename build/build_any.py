@@ -44,6 +44,10 @@ class cmake:
 		self.pkgdir = os.path.join(os.getcwd(), 'pkgs', os_name)
 
 	def configure(self, *args, **kwargs):
+		if 'CEF_ROOT' not in os.environ:
+			print('CEF_ROOT environment variable is not set', file=sys.stderr)
+			sys.exit(2)
+
 		if 'clean' in kwargs and kwargs['clean']:
 			safe(clean_dir, self.bindir,
 				msg='{}: cannot use as cmake binary directory'.format(self.bindir))
