@@ -1,0 +1,2 @@
+#include <def_version.h>
+#define PROGRAM_NAME "panelberry"
