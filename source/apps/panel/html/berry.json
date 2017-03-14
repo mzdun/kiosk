@@ -1,0 +1,23 @@
+[
+	{
+		"widget" : "lights",
+		"src"    : ".default.html",
+		"width"  : 160,
+		"snap"   : "left"
+	},
+	{
+		"widget" : "player",
+		"src"    : ".default.html",
+		"height" : 160,
+		"snap"   : "bottom"
+	},
+	{
+		"widget" : "weather",
+		"src"    : ".default.html",
+		"width"  : 160,
+		"snap"   : "right"
+	},
+	{
+		"widget" : "clock"
+	}
+]

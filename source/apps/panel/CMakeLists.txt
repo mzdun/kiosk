@@ -84,5 +84,4 @@ endif()
 
 install(TARGETS ${CEF_TARGET} DESTINATION share/panel)
 install(DIRECTORY ${CEF_RESOURCE_DIR}/ DESTINATION share/panel)
-message(STATUS "CEF BIN: ${CEF_BINARY_FILES}")
-message(STATUS "CEF RES: ${CEF_RESOURCE_FILES}")
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html DESTINATION share/panel)
