@@ -1,5 +1,11 @@
 [
 	{
+		"widget" : "system_bar",
+		"src"    : ".default.html",
+		"height" : 48,
+		"snap"   : "top"
+	},
+	{
 		"widget" : "lights",
 		"src"    : ".default.html",
 		"width"  : 160,

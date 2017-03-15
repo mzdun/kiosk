@@ -10,6 +10,7 @@ CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/version.h.in ${PROJECT_BINARY_DIR}/version.
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+
 set(CEF_TARGET ${PROJECT_NAME})
 
 set(SRCS
@@ -17,6 +18,8 @@ set(SRCS
 	runtime.h
 	embed.cc
 	embed.h
+	kiosk.cc
+	kiosk.h
 )
 set(SRCS_LINUX
 	main_linux.cc
@@ -82,6 +85,14 @@ if(OS_WINDOWS)
   COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
 endif()
 
+add_custom_command(
+        TARGET "${CEF_TARGET}"
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/html" "${CEF_TARGET_OUT_DIR}/html"
+        VERBATIM
+        )
+
+set_target_properties(${CEF_TARGET} PROPERTIES CXX_STANDARD 14)
 macro(INSTALL_CEF_FILES file_list source_dir target_dir)
   foreach(FILENAME ${file_list})
     set(source_file ${source_dir}/${FILENAME})

@@ -1,20 +1,15 @@
-// Copyright (c) 2013 The Chromium Embedded Framework Authors. All rights
-// reserved. Use of this source code is governed by a BSD-style license that
-// can be found in the LICENSE file.
-
-#ifndef CEF_TESTS_CEFSIMPLE_SIMPLE_HANDLER_H_
-#define CEF_TESTS_CEFSIMPLE_SIMPLE_HANDLER_H_
+#pragma once
 
 #include "include/cef_client.h"
 
-#include <list>
+#include <vector>
 
 class Embed : public CefClient,
 	public CefDisplayHandler,
 	public CefLifeSpanHandler,
 	public CefLoadHandler {
 public:
-	explicit Embed(bool use_views);
+	Embed();
 	~Embed();
 
 	// Provide access to the single global instance of this object.
@@ -51,11 +46,8 @@ private:
 	void PlatformTitleChange(CefRefPtr<CefBrowser> browser,
 		const CefString& title);
 
-	// True if the application is using the Views framework.
-	const bool use_views_;
-
 	// List of existing browser windows. Only accessed on the CEF UI thread.
-	typedef std::list<CefRefPtr<CefBrowser> > BrowserList;
+	typedef std::vector<CefRefPtr<CefBrowser> > BrowserList;
 	BrowserList browser_list_;
 
 	bool is_closing_;
@@ -63,5 +55,3 @@ private:
 	// Include the default reference counting implementation.
 	IMPLEMENT_REFCOUNTING(Embed);
 };
-
-#endif  // CEF_TESTS_CEFSIMPLE_SIMPLE_HANDLER_H_
