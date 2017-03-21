@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.4)
-project(panel C CXX)
+project(runtime C CXX)
 
+set(USE_SANDBOX OFF)
 find_package(CEF)
 
 add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll)
@@ -26,8 +27,8 @@ set(SRCS_LINUX
 	embed_linux.cc
 )
 set(SRCS_WINDOWS
-	panel.exe.manifest
-	panel.rc
+	runtime.exe.manifest
+	runtime.rc
 	main_win.cc
 	embed_win.cc
 )
@@ -42,22 +43,14 @@ SET_CEF_TARGET_OUT_DIR()
 
 if(OS_LINUX)
   # Executable target.
-  add_executable(${CEF_TARGET} ${SRCS})
-  SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
-  add_dependencies(${CEF_TARGET} libcef_dll_wrapper)
-  target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+  add_executable(${PROJECT_NAME} ${SRCS})
 
   # Set rpath so that libraries can be placed next to the executable.
-  set_target_properties(${CEF_TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
-  set_target_properties(${CEF_TARGET} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-  set_target_properties(${CEF_TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CEF_TARGET_OUT_DIR})
-
-  # Copy binary and resource files to the target output directory.
-  COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
-  COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
+  set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN")
+  set_target_properties(${PROJECT_NAME} PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
 
   # Set SUID permissions on the chrome-sandbox target.
-  SET_LINUX_SUID_PERMISSIONS("${CEF_TARGET}" "${CEF_TARGET_OUT_DIR}/chrome-sandbox")
+  # SET_LINUX_SUID_PERMISSIONS("${PROJECT_NAME}" "${CEF_TARGET_OUT_DIR}/chrome-sandbox")
 endif()
 
 #
@@ -66,33 +59,31 @@ endif()
 
 if(OS_WINDOWS)
   # Executable target.
-  add_executable(${CEF_TARGET} WIN32 ${SRCS})
-  # add_dependencies(${CEF_TARGET} libcef_dll_wrapper)
-  SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
-  target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+  add_executable(${PROJECT_NAME} WIN32 ${SRCS})
 
-  if(USE_SANDBOX)
-    # Logical target used to link the cef_sandbox library.
-    ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
-    target_link_libraries(${CEF_TARGET} cef_sandbox_lib ${CEF_SANDBOX_STANDARD_LIBS})
-  endif()
+  # if(USE_SANDBOX)
+  #   # Logical target used to link the cef_sandbox library.
+  #   ADD_LOGICAL_TARGET("cef_sandbox_lib" "${CEF_SANDBOX_LIB_DEBUG}" "${CEF_SANDBOX_LIB_RELEASE}")
+  #   target_link_libraries(${PROJECT_NAME} cef_sandbox_lib ${CEF_SANDBOX_STANDARD_LIBS})
+  # endif()
 
   # Add the custom manifest files to the executable.
-  ADD_WINDOWS_MANIFEST("${CMAKE_CURRENT_SOURCE_DIR}" "${CEF_TARGET}" "exe")
-
-  # Copy binary and resource files to the target output directory.
-  COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
-  COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
+  add_custom_command(
+    TARGET ${PROJECT_NAME}
+    POST_BUILD
+    COMMAND "mt.exe" -nologo
+            -manifest \"${CMAKE_CURRENT_SOURCE_DIR}/${PROJECT_NAME}.exe.manifest\" \"${CMAKE_CURRENT_SOURCE_DIR}/compatibility.manifest\"
+            -outputresource:"${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.exe"\;\#1
+    COMMENT "Adding manifest..."
+    )
 endif()
 
-add_custom_command(
-        TARGET "${CEF_TARGET}"
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/html" "${CEF_TARGET_OUT_DIR}/html"
-        VERBATIM
-        )
+SET_EXECUTABLE_TARGET_PROPERTIES(${PROJECT_NAME})
+add_dependencies(${PROJECT_NAME} libcef_dll_wrapper)
+target_link_libraries(${PROJECT_NAME} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 14)
+add_dependencies(${PROJECT_NAME} kiosk-apps)
 
-set_target_properties(${CEF_TARGET} PROPERTIES CXX_STANDARD 14)
 macro(INSTALL_CEF_FILES file_list source_dir target_dir)
   foreach(FILENAME ${file_list})
     set(source_file ${source_dir}/${FILENAME})
@@ -107,9 +98,8 @@ macro(INSTALL_CEF_FILES file_list source_dir target_dir)
   endforeach()
 endmacro()
 
-install(TARGETS ${CEF_TARGET} DESTINATION share/panel)
-INSTALL_CEF_FILES("${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" share/panel)
-INSTALL_CEF_FILES("${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" share/panel)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/html DESTINATION share/panel)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${SHARE_ROOT}runtime)
+# INSTALL_CEF_FILES("${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" share/panel)
+# INSTALL_CEF_FILES("${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" share/panel)
 
 PRINT_CEF_CONFIG()

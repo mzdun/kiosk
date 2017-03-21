@@ -8,7 +8,7 @@ parser.add_argument('--no-pack', action='store_true', default=False, help='does 
 args = parser.parse_args()
 
 build = cmake('win32\\debug' if args.debug else 'win32\\release')
-build.configure(clean=args.clean)
+build.configure('-DCMAKE_BUILD_TYPE={}'.format('Debug' if args.debug else 'Release'), clean=args.clean)
 build.run('--config', 'Debug' if args.debug else 'Release')
 
 if not args.no_pack:

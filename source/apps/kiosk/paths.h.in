@@ -1,0 +1,16 @@
+#pragma once
+
+#define LAUNCHER_DIR_LIB "@DEF_LIB_DST@"
+#define LAUNCHER_DIR_DATA "@DEF_DATA_DST@"
+#define LAUNCHER_DIR_APPS "@DEF_APPS_DST@"
+
+#ifdef _WIN32
+#define LAUNCHER_DIRSEP "\\"
+#define LAUNCHER_PATHSEP ';'
+#else
+#define LAUNCHER_DIRSEP "/"
+#define LAUNCHER_PATHSEP ':'
+#endif
+
+#define LAUNCHER_LIBCEF "libcef@CMAKE_SHARED_MODULE_SUFFIX@"
+#define LAUNCHER_RUNTIME "runtime@CMAKE_EXECUTABLE_SUFFIX@"

@@ -30,4 +30,4 @@ foreach(DEP ${DEPS})
 endforeach()
 
 install(TARGETS ${PROJECT_NAME}
-	DESTINATION share/panel/plugins)
+	DESTINATION ${LIB_ROOT}plugins)
