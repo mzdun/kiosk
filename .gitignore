@@ -31,3 +31,4 @@
 bin
 pkgs
 *.pyc
+*.aps

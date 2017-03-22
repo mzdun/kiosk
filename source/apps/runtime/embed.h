@@ -43,6 +43,7 @@ public:
 
 private:
 	// Platform-specific implementation.
+	void PlatformSetIcon(CefRefPtr<CefBrowser> browser);
 	void PlatformTitleChange(CefRefPtr<CefBrowser> browser,
 		const CefString& title);
 

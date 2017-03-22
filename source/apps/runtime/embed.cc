@@ -48,6 +48,7 @@ void Embed::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
 	// Add to the list of existing browsers.
 	browser_list_.push_back(browser);
+	PlatformSetIcon(browser);
 }
 
 bool Embed::DoClose(CefRefPtr<CefBrowser> browser)
