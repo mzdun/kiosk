@@ -14,6 +14,8 @@
 #define LAUNCHER_LIBCEFW   JOIN(L, LAUNCHER_LIBCEF)
 #define LAUNCHER_LIBKIOSKW JOIN(L, LAUNCHER_LIBKIOSK)
 
+static constexpr wchar_t kCefSwitch[] = JOIN(L, CEF_SWITCH);
+static constexpr wchar_t kRuntimeSwitch[] = JOIN(L, RUNTIME_SWITCH);
 
 template <typename T>
 struct local
@@ -27,12 +29,6 @@ struct local
 	using ptr = std::unique_ptr<T, free>;
 };
 
-static constexpr wchar_t kCefSwitch[] = L"--cef";
-static constexpr wchar_t kRuntimeSwitch[] = L"--rt";
-
-template <typename T, size_t length>
-size_t size(T(&arr)[length]) { return length; }
-
 template <size_t length>
 LPWSTR GetArg(LPWSTR arg, const wchar_t(&kSwitch)[length]) {
 	if (wcsncmp(kSwitch, arg, size(kSwitch) - 1))
@@ -44,11 +40,10 @@ LPWSTR GetArg(LPWSTR arg, const wchar_t(&kSwitch)[length]) {
 	return cand + 1;
 }
 
-
 std::wstring GetAppDir() {
 	wchar_t buffer[2048];
 	GetModuleFileNameW(nullptr, buffer, size(buffer));
-	auto slash = wcsrchr(buffer, '\\');
+	auto slash = wcsrchr(buffer, LAUNCHER_DIRSEP);
 	if (!slash)
 		slash = buffer;
 	*slash = 0;
@@ -65,8 +60,8 @@ auto GetEnv(LPCWSTR name) {
 	return std::unique_ptr<wchar_t[]>{};
 }
 
-auto try_load(const std::wstring& dll) {
-	auto pos = dll.rfind('\\');
+auto TryLoad(const std::wstring& dll) {
+	auto pos = dll.rfind(LAUNCHER_DIRSEP);
 	if (pos != std::string::npos) {
 		auto dir = dll.substr(0, pos);
 		auto path = GetEnv(L"PATH");
@@ -83,8 +78,10 @@ auto try_load(const std::wstring& dll) {
 	auto err = GetLastError();
 	if (!handle)
 		MessageBox(nullptr, (L"Could not load " + dll.substr(pos) + L"\nAborting").c_str(), L"Kiosk", MB_OK | MB_ICONERROR);
+	else
+		FreeLibrary(handle);
 
-	return handle;
+	return !!handle;
 };
 
 constexpr wchar_t escaped[] = L"\"\\ ";
@@ -150,7 +147,7 @@ void Append(std::vector<wchar_t>& in, LPCWSTR text) {
 std::vector<wchar_t> BuildCommandLine(const std::wstring& process, int argc, wchar_t** argv) {
 	std::vector<wchar_t> out;
 
-	auto fname_pos = process.rfind('\\');
+	auto fname_pos = process.rfind(LAUNCHER_DIRSEP);
 	if (fname_pos == std::string::npos)
 		fname_pos = 0;
 	else
@@ -171,7 +168,6 @@ std::vector<wchar_t> BuildCommandLine(const std::wstring& process, int argc, wch
 	return out;
 }
 
-// Entry point function for all processes.
 int APIENTRY wWinMain(
 	HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
@@ -224,25 +220,24 @@ int APIENTRY wWinMain(
 #define CONFIG L"Debug"
 #endif
 				std::wstring cefroot = cef_root.get();
-				auto lib = try_load(cefroot + DIRSEPW CONFIG DIRSEPW L"libcef.dll");
+				auto lib = TryLoad(cefroot + DIRSEPW CONFIG DIRSEPW L"libcef.dll");
 				if (!lib)
 					return 1;
 			} else {
-				auto lib = try_load(GetAppDir() + DIRSEPW LAUNCHER_DIR_LIBW DIRSEPW LAUNCHER_LIBCEFW);
+				auto lib = TryLoad(GetAppDir() + DIRSEPW LAUNCHER_DIR_LIBW DIRSEPW LAUNCHER_LIBCEFW);
 				if (!lib)
 					return 1;
 			}
 		} else {
-			auto lib = try_load(cef_path);
+			auto lib = TryLoad(cef_path);
 			if (!lib)
 				return 1;
 		}
 
 		auto runtime = runtime_path ? runtime_path : GetAppDir() + DIRSEPW LAUNCHER_DIR_LIBW DIRSEPW LAUNCHER_RUNTIME;
-		auto exe = try_load(runtime);
+		auto exe = TryLoad(runtime);
 		if (!exe)
 			return 2;
-		FreeLibrary(exe);
 
 		auto cmdline = BuildCommandLine(runtime, argc, argv.get());
 		if (!CreateProcessW(runtime.c_str(), cmdline.data(), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi)) {

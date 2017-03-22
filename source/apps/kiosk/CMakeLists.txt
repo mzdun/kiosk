@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.4)
 project(kiosk C CXX)
 
+if (UNIX)
+set(LAUNCHER_DIRSEP "/")
+set(LAUNCHER_PATHSEP ":")
+else()
+set(LAUNCHER_DIRSEP "\\\\")
+set(LAUNCHER_PATHSEP ";")
+endif()
+
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/version.h.in ${PROJECT_BINARY_DIR}/version.h)
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/paths.h.in ${PROJECT_BINARY_DIR}/paths.h)
 
@@ -21,6 +29,8 @@ set(SRCS
 
 if (UNIX)
 add_executable(${PROJECT_NAME} ${SRCS})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS})
+message(STATUS "dl: ${CMAKE_DL_LIBS}")
 elseif (WIN32)
 list(APPEND SRCS
 	kiosk.rc

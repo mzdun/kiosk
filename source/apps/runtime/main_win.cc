@@ -14,6 +14,7 @@
 // to the CMake command-line to disable use of the sandbox.
 // Uncomment this line to manually enable sandbox support.
 // #define CEF_USE_SANDBOX 1
+#undef CEF_USE_SANDBOX
 
 #if defined(CEF_USE_SANDBOX)
 // The cef_sandbox.lib static library is currently built with VS2013. It may not
