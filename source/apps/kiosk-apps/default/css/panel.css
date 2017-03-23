@@ -3,6 +3,7 @@ body {
 	background: #444;
 	font-family: sans-serif;
 	margin: 0px;
+	overflow: hidden;
 }
 
 .edge-v {
