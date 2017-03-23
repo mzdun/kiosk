@@ -68,8 +68,6 @@ void Runtime::OnContextInitialized()
 
 	// Information used when creating the native window.
 	CefWindowInfo window_info;
-	window_info.width  = 800;
-	window_info.height = 480;
 
 #if defined(OS_WIN)
 	// On Windows we need to specify certain flags that will be passed to
@@ -77,6 +75,18 @@ void Runtime::OnContextInitialized()
 	window_info.SetAsPopup(NULL, "cef-runtime");
 #endif
 
+	auto scale = SystemDpiScaling();
+	window_info.width = scale.x(800);
+	window_info.height = scale.y(480);
+
+#if defined(OS_WIN)
+	{
+		RECT r{ 0, 0, window_info.width, window_info.height };
+		AdjustWindowRect(&r, window_info.style, FALSE);
+		window_info.width = r.right - r.left;
+		window_info.height = r.bottom - r.top;
+	}
+#endif
 	// Create the first browser window.
 	CefBrowserHost::CreateBrowser(window_info, handler, url, browser_settings, nullptr);
 }

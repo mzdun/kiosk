@@ -34,12 +34,14 @@ set(SRCS
 set(SRCS_LINUX
 	main_linux.cc
 	embed_linux.cc
+	runtime_linux.cc
 )
 set(SRCS_WINDOWS
 	runtime.exe.manifest
 	runtime.rc
 	main_win.cc
 	embed_win.cc
+	runtime_win.cc
 )
 APPEND_PLATFORM_SOURCES(SRCS)
 
