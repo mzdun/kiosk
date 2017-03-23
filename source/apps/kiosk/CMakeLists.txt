@@ -44,4 +44,4 @@ add_executable(${PROJECT_NAME} WIN32 ${SRCS})
 endif()
 
 add_dependencies(${PROJECT_NAME} runtime)
-install(TARGETS ${PROJECT_NAME} DESTINATION ${MAIN_BIN})
+install(TARGETS ${PROJECT_NAME} DESTINATION ${MAIN_INST})
