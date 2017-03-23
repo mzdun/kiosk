@@ -6,7 +6,16 @@ find_package(CEF)
 
 add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll)
 
+if (UNIX)
+set(LAUNCHER_DIRSEP "/")
+set(LAUNCHER_PATHSEP ":")
+else()
+set(LAUNCHER_DIRSEP "\\\\")
+set(LAUNCHER_PATHSEP ";")
+endif()
+
 CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/version.h.in ${PROJECT_BINARY_DIR}/version.h)
+CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/paths.h.in ${PROJECT_BINARY_DIR}/paths.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

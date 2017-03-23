@@ -78,6 +78,7 @@ std::string FindRuntime(int argc, char* argv[]) {
 	}
 
 	if (!cef_path) {
+#ifdef USE_CEF_ROOT
 		auto cef_root = getenv("CEF_ROOT");
 		if (cef_root) {
 #ifdef NDEBUG
@@ -90,17 +91,20 @@ std::string FindRuntime(int argc, char* argv[]) {
 			if (!lib)
 				return {};
 		} else {
+#endif
 			auto lib = TryLoad(LAUNCHER_DIR_LIB LAUNCHER_DIRSTR LAUNCHER_LIBCEF);
 			if (!lib)
 				return {};
+#ifdef USE_CEF_ROOT
 		}
+#endif
 	} else {
 		auto lib = TryLoad(cef_path);
 		if (!lib)
 			return {};
 	}
 
-	return runtime_path ? runtime_path : LAUNCHER_DIR_DATA LAUNCHER_DIRSTR LAUNCHER_RUNTIME;
+	return runtime_path ? runtime_path : LAUNCHER_DIR_RT LAUNCHER_DIRSTR LAUNCHER_RUNTIME;
 }
 
 int main(int argc, char* argv[])
@@ -116,9 +120,14 @@ int main(int argc, char* argv[])
 		if (!child) {
 			std::vector<char*> args(argc + 1);
 			args[0] = &runtime[0];
-			for (int i = 1; i < argc; ++i)
-				args[i] = argv[i];
-			args[argc] = nullptr;
+			int j = 0;
+			for (int i = 1; i < argc; ++i) {
+				if (GetArg(argv[i], kCefSwitch) ||
+					GetArg(argv[i], kRuntimeSwitch))
+					continue;
+				args[j++] = argv[i];
+			}
+			args[j] = nullptr;
 			execvp(runtime.c_str(), args.data());
 			int err = errno;
 			fprintf(stderr, "kiosk: %s: %s\n", runtime.c_str(), strerror(err));

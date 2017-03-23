@@ -4,6 +4,7 @@
 
 #include "embed.h"
 #include "kiosk.h"
+#include "paths.h"
 #include "ptr.h"
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
@@ -35,17 +36,32 @@ void Runtime::OnContextInitialized()
 	// Specify CEF browser settings here.
 	CefBrowserSettings browser_settings;
 
-	std::string url{"kiosk://panel/"};
+	std::string url{"kiosk://default/"};
+	if (command_line->HasSwitch(APP_SWITCH)) {
+		url = "kiosk://" +
+			command_line->GetSwitchValue(APP_SWITCH).ToString() +
+			"/";
+	}
 
 	{
-		CefString kiosk_dir;
-		if (CefGetPath(PK_DIR_EXE, kiosk_dir)) {
-			auto dir = kiosk_dir.ToString();
-			if (!RegisterKioskApps({ dir, {{ "panel", "html" }} })) {
+		std::string kiosk_dir;
+		if (command_line->HasSwitch(KIOSK_SWITCH)) {
+			kiosk_dir = command_line->GetSwitchValue(KIOSK_SWITCH).ToString();
+		} else {
+#if defined(OS_WIN)
+			CefString app_dir;
+			if (CefGetPath(PK_DIR_EXE, app_dir)) {
+				kiosk_dir = app_dir.ToString() + LAUNCHER_DIRSEP LAUNCHER_DIR_APPS;
+			}
+#else
+			kiosk_dir = LAUNCHER_DIR_APPS;
+#endif
+		}
+		if (!kiosk_dir.empty()) {
+			if (!RegisterKioskApps(kiosk_dir)) {
 				url = "data:text/html,<title>Internal Error</title><h1>Failed to register kiosk apps";
 			}
-		}
-		else {
+		} else {
 			url = "data:text/html,<title>Internal Error</title><h1>Failed to setup kiosk";
 		}
 	}

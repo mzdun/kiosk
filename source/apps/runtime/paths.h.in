@@ -1,0 +1,7 @@
+#pragma once
+
+#define LAUNCHER_DIR_APPS "@DEF_APPS_DST@"
+#define LAUNCHER_DIRSEP   "@LAUNCHER_DIRSEP@"
+
+#define KIOSK_SWITCH      "kiosk"
+#define APP_SWITCH        "app"

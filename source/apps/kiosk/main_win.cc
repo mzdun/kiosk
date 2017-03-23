@@ -1,6 +1,5 @@
 #include <windows.h>
 #include <paths.h>
-// #include <run_kiosk.h>
 #include <tchar.h>
 #include <memory>
 #include <string>
@@ -12,7 +11,8 @@
 
 #define DIRSEPW L"\\"
 #define LAUNCHER_LIBCEFW   JOIN(L, LAUNCHER_LIBCEF)
-#define LAUNCHER_LIBKIOSKW JOIN(L, LAUNCHER_LIBKIOSK)
+#define LAUNCHER_RUNTIMEW  JOIN(L, LAUNCHER_RUNTIME)
+#define LAUNCHER_DIR_RTW  JOIN(L, LAUNCHER_DIR_RT)
 
 static constexpr wchar_t kCefSwitch[] = JOIN(L, CEF_SWITCH);
 static constexpr wchar_t kRuntimeSwitch[] = JOIN(L, RUNTIME_SWITCH);
@@ -84,8 +84,6 @@ auto TryLoad(const std::wstring& dll) {
 	return !!handle;
 };
 
-constexpr wchar_t escaped[] = L"\"\\ ";
-
 size_t BufferFor(LPCWSTR text) {
 	size_t length = 0, extra = 0, spaces = 0;
 	while (*text) {
@@ -154,12 +152,20 @@ std::vector<wchar_t> BuildCommandLine(const std::wstring& process, int argc, wch
 		++fname_pos;
 
 	size_t reserve = BufferFor(process.c_str() + fname_pos);
-	for (int i = 1; i < argc; ++i)
+	for (int i = 1; i < argc; ++i) {
+		if (GetArg(argv[i], kCefSwitch) ||
+			GetArg(argv[i], kRuntimeSwitch))
+			continue;
 		reserve += 1 + BufferFor(argv[i]);
+	}
 
 	out.reserve(reserve + 1); // for nil
 	Append(out, process.c_str() + fname_pos);
 	for (int i = 1; i < argc; ++i) {
+		if (GetArg(argv[i], kCefSwitch) ||
+			GetArg(argv[i], kRuntimeSwitch))
+			continue;
+
 		out.push_back(' ');
 		Append(out, argv[i]);
 	}
@@ -212,6 +218,7 @@ int APIENTRY wWinMain(
 		}
 
 		if (!cef_path) {
+#ifdef USE_CEF_ROOT
 			auto cef_root = GetEnv(L"CEF_ROOT");
 			if (cef_root) {
 #ifdef NDEBUG
@@ -224,17 +231,20 @@ int APIENTRY wWinMain(
 				if (!lib)
 					return 1;
 			} else {
+#endif
 				auto lib = TryLoad(GetAppDir() + DIRSEPW LAUNCHER_DIR_LIBW DIRSEPW LAUNCHER_LIBCEFW);
 				if (!lib)
 					return 1;
+#ifdef USE_CEF_ROOT
 			}
+#endif
 		} else {
 			auto lib = TryLoad(cef_path);
 			if (!lib)
 				return 1;
 		}
 
-		auto runtime = runtime_path ? runtime_path : GetAppDir() + DIRSEPW LAUNCHER_DIR_LIBW DIRSEPW LAUNCHER_RUNTIME;
+		auto runtime = runtime_path ? runtime_path : GetAppDir() + DIRSEPW LAUNCHER_DIR_RTW DIRSEPW LAUNCHER_RUNTIMEW;
 		auto exe = TryLoad(runtime);
 		if (!exe)
 			return 2;

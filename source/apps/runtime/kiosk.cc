@@ -28,6 +28,10 @@ static constexpr wchar_t DIRSEP = '\\';
 static constexpr wchar_t DIRSEP = '/';
 #endif
 
+struct KioskConf {
+	std::string root;
+};
+
 static std::string join_path(const std::string& dir) { return dir; }
 
 template <typename String, typename ... Strings>
@@ -93,18 +97,13 @@ public:
 		app = str(parts.host);
 		path = str(parts.path);
 
-		auto it = conf_->apps.find(app);
-		if (it == conf_->apps.end()) {
-			return error404(url);
-		}
-
 		path = path.substr(1);
 #ifdef WIN32
 		for (auto& c : path)
 			if (c == '/') c = '\\';
 #endif
 
-		auto resource = join_path(conf_->root, it->second, path);
+		auto resource = join_path(conf_->root, app, path);
 		DLOG(INFO) << app << " :: " << str(parts.path) << " -> " << resource;
 
 		struct stat st;
@@ -386,15 +385,10 @@ void RegisterKioskScheme(CefRawPtr<CefSchemeRegistrar> registrar)
 		true); // is_cors_enabled -> "This value should be true in most cases where |is_standard| is true."
 }
 
-bool RegisterKioskApps(KioskConf conf)
+bool RegisterKioskApps(std::string const& root)
 {
-	for (auto const& pair : conf.apps) {
-		auto const& name = std::get<0>(pair);
-		auto const& dir = std::get<1>(pair);
-		auto app_root = join_path(conf.root, dir);
-		LOG(INFO) << "kiosk://" << name << "/ -> " << app_root;
-	}
-
+	DLOG(INFO) << "kiosk -> " << root;
+	KioskConf conf{ root };
 	auto pconf = std::make_shared<KioskConf>(std::move(conf));
 	auto factory = CefPtr<KioskSchemeHandlerFactory>(pconf);
 	return CefRegisterSchemeHandlerFactory("kiosk", {}, factory);

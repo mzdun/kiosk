@@ -26,12 +26,12 @@ set(SHARE_INST  share/kiosk)           # runtime
 set(RES_INST    ${SHARE_INST}/resources) # .pak
 set(LOCALE_INST ${SHARE_INST})         # locales
 set(CEF_INST    lib/kiosk)             # libcef.so
-set(DATA_INST   ${CEF_INST})           # .blob, .dat
+set(DATA_INST   ${SHARE_INST})         # .blob, .dat
 set(PLUGIN_INST lib/kiosk/plugins)     # libpphue.so
 set(APPS_INST   share/kiosk/apps)      # kiosk:// apps
 
 set(DEF_LIB_DST  ${CMAKE_INSTALL_PREFIX}/${CEF_INST})
-set(DEF_DATA_DST ${CMAKE_INSTALL_PREFIX}/${RES_INST})
+set(DEF_RT_DST   ${CMAKE_INSTALL_PREFIX}/${SHARE_INST})
 set(DEF_APPS_DST ${CMAKE_INSTALL_PREFIX}/${SHARE_INST}/apps)
 
 set(KIOSK_CMAKE_BINARY_DIR   bin)
@@ -49,13 +49,13 @@ set(SHARE_INST  runtime)               # runtime
 set(RES_INST    resources)             # .pak
 set(LOCALE_INST ".")                   # locales
 set(CEF_INST    runtime/lib)           # libcef.dll, gl, d3d
-set(DATA_INST   ${SHARE_INST})         # .blob, .dat
+set(DATA_INST   ${CEF_INST})           # .blob, .dat
 set(PLUGIN_INST plugins)               # pphue.dll
 set(APPS_INST   apps)                  # kiosk:// apps
 
-set(DEF_LIB_DST  ${CEF_INST})
-set(DEF_DATA_DST ${RES_INST})
-set(DEF_APPS_DST apps)
+set(DEF_LIB_DST  runtime\\\\lib)
+set(DEF_RT_DST   ${SHARE_INST})
+set(DEF_APPS_DST ..\\\\apps)
 
 set(KIOSK_CMAKE_BINARY_DIR   kiosk)
 set(RUNTIME_CMAKE_BINARY_DIR kiosk/${SHARE_INST})
