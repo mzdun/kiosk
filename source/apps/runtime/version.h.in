@@ -1,4 +1,0 @@
-#include <def_version.h>
-#define PROGRAM_NAME "panel"
-#define PROGRAM_DESCRIPTION "Control panel for IoT devices on RPi (dev)"
-#define PROGRAM_COPYRIGHT_HOLDER "midnightBITS"

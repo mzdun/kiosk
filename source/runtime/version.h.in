@@ -1,0 +1,4 @@
+#include <def_version.h>
+#define PROGRAM_NAME "runtime"
+#define PROGRAM_DESCRIPTION "@TOPLEVEL_DESCRIPTION_SUMMARY@"
+#define PROGRAM_COPYRIGHT_HOLDER "@TOPLEVEL_VENDOR@"

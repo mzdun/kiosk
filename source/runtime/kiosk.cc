@@ -83,14 +83,14 @@ public:
 
 		if (method != "GET" && method != "HEAD") {
 			return error("text/html", 405, "Method not allowed",
-			             "<p>Method <tt>" + method + "</tt> not allowed for <tt>" + url + "</tt>.");
+			             "<p>Method <tt>" + method + "</tt> not allowed for <tt>" + url + "</tt>.</p>");
 		}
 
 		CefURLParts parts;
 		std::string app, path;
 		if (!CefParseURL(request->GetURL(), parts)) {
 			return error("text/html", 500, "Internal problem",
-				"<p>Kiosk scheme handler issue when processing <tt>" + url + "</tt>.");
+				"<p>Kiosk scheme handler issue when processing <tt>" + url + "</tt>.</p>");
 		}
 
 		url = str(parts.spec);
@@ -121,7 +121,7 @@ public:
 				CefString new_url;
 				if (!CefCreateURL(parts, new_url)) {
 					return error("text/html", 500, "Internal problem",
-						"<p>Kiosk scheme handler issue when processing directory from <tt>" + url + "</tt>.");
+						"<p>Kiosk scheme handler issue when processing directory from <tt>" + url + "</tt>.</p>");
 				}
 				return redir(new_url.ToString());
 			}
@@ -200,8 +200,22 @@ private:
 		{
 			auto stat = std::to_string(status);
 			content_ =
-			        "<title>" + stat + " " + status_text + "</title>"
-			        "<h1>" + stat + " " + status_text + "</h1>" + msg;
+			        R"(<html><head><style>
+body{font-family:sans-serif;color:#f0f0f0;background:black;margin:0;padding:0}
+.content{display:grid;grid-template-rows:min-content 1fr min-content;grid-template-columns:4em 1fr;height:100%}
+@media(min-width:800px){.content{width:800px;margin:0 auto}}
+header{grid-row:1;grid-column:1/span 2;grid-template-columns:4em 1fr;display:grid}
+header>svg{display:inline-block;grid-row:1;grid-column:1;justify-self:center;align-self:center}
+h1{grid-row:1;grid-column:2;margin:.5em}
+p{margin:1em}
+content{grid-row:2;grid-column:2}
+footer{grid-row:3;grid-column:2;font-size:50%;text-align:center}
+hr { width:60%;border:solid .5px silver;text-align:left }</style><title>)" + stat + " " + status_text + R"(</title></head>
+<body><div class='content'>
+<header><svg xmlns="http://www.w3.org/2000/svg" width="3em" height="3em" viewBox="0 0 32 32" version="1.1"	style='stroke-linejoin:round;stroke-linecap:round;stroke:#3faade;fill:none;stroke-width:3'><path stroke-width='6' d='M6,14.4L16,4.4L26,14.4L26,24.4L6,24.4z'/><path stroke='white' d='M6,14.4L16,4.4L26,14.4L26,24.4L6,24.4z'/></svg><h1>)" + stat + " " + status_text + R"(</h1></header>
+<content>)" + msg + R"(</content>
+<footer><hr/><p>Powered by Kiosk and Chromium</p></footer>
+</div></body></html>)";
 		}
 
 		void resp(CefRefPtr<CefResponse> response, int64& response_length,
@@ -280,13 +294,13 @@ private:
 	bool error404(const std::string& url)
 	{
 		return error("text/html", 404, "Not Found",
-		      "<p>Address <tt>" + url + "</tt> was not found.");
+		      "<p>Address <tt>" + url + "</tt> was not found.</p>");
 	}
 
 	bool error403(const std::string& url)
 	{
 		return error("text/html", 403, "Forbidden",
-		      "<p>Address <tt>" + url + "</tt> was not allowed.");
+		      "<p>Address <tt>" + url + "</tt> was not allowed.</p>");
 	}
 
 	bool error(const char* mime, int status, const char* status_text, const std::string& msg)
@@ -297,7 +311,7 @@ private:
 
 	bool redir(const std::string& redir)
 	{
-		handler_ = std::make_unique<error_handler>(302, "text/html", "Found", "", redir);
+		handler_ = std::make_unique<error_handler>(302, "text/html", "Found", "<p>&nbsp;</p>", redir);
 		return true;
 	}
 
