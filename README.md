@@ -1,2 +1,2 @@
-# panelberry
-Software for a stand-alone control panel based on Raspberry Pi, with Philips Hue switch as one of the intended controls.
+# Kiosk
+CEF-based HTML5 application environment, with plans for full-screen exclusive applications.
