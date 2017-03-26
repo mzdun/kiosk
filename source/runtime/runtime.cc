@@ -4,7 +4,7 @@
 
 #include "embed.h"
 #include "kiosk.h"
-#include "paths.h"
+#include "paths_runtime.h"
 #include "ptr.h"
 #include "include/cef_browser.h"
 #include "include/cef_command_line.h"
@@ -12,7 +12,10 @@
 #include "include/views/cef_browser_view.h"
 #include "include/views/cef_window.h"
 #include "include/wrapper/cef_helpers.h"
+#include "template.h"
 #include "version.h"
+
+#include "../common/switches.h"
 
 Runtime::Runtime()
 {
@@ -21,6 +24,41 @@ Runtime::Runtime()
 void Runtime::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar)
 {
 	RegisterKioskScheme(registrar);
+}
+
+void Runtime::OnBeforeCommandLineProcessing(
+	const CefString& process_type,
+	CefRefPtr<CefCommandLine> command_line)
+{
+	if (!process_type.empty()) {
+		LOG(INFO) << process_type.ToString();
+		return;
+	}
+
+	// TODO: plugins
+}
+
+std::string get_kiosk_dir() {
+	CefRefPtr<CefCommandLine> command_line =
+		CefCommandLine::GetGlobalCommandLine();
+
+	if (command_line->HasSwitch(KIOSK_SWITCH))
+		return command_line->GetSwitchValue(KIOSK_SWITCH);
+
+	if (command_line->HasSwitch(ROOT_SWITCH)) {
+		return command_line->GetSwitchValue(ROOT_SWITCH).ToString()
+			+ LAUNCHER_DIRSEP LAUNCHER_DIR_APPS;
+	}
+
+#if defined(OS_WIN)
+	CefString app_dir;
+	if (CefGetPath(PK_DIR_EXE, app_dir))
+		return app_dir.ToString() + LAUNCHER_DIRSEP LAUNCHER_DIR_DEPTH LAUNCHER_DIR_APPS;
+
+	return {};
+#else
+	return LAUNCHER_PREFIX LAUNCHER_DIRSEP LAUNCHER_DIR_APPS;
+#endif
 }
 
 void Runtime::OnContextInitialized()
@@ -44,25 +82,13 @@ void Runtime::OnContextInitialized()
 	}
 
 	{
-		std::string kiosk_dir;
-		if (command_line->HasSwitch(KIOSK_SWITCH)) {
-			kiosk_dir = command_line->GetSwitchValue(KIOSK_SWITCH).ToString();
-		} else {
-#if defined(OS_WIN)
-			CefString app_dir;
-			if (CefGetPath(PK_DIR_EXE, app_dir)) {
-				kiosk_dir = app_dir.ToString() + LAUNCHER_DIRSEP LAUNCHER_DIR_APPS;
-			}
-#else
-			kiosk_dir = LAUNCHER_DIR_APPS;
-#endif
-		}
+		std::string kiosk_dir = get_kiosk_dir();
 		if (!kiosk_dir.empty()) {
 			if (!RegisterKioskApps(kiosk_dir)) {
-				url = "data:text/html,<title>Internal Error</title><h1>Failed to register kiosk apps";
+				url = "data:text/html," + response_template("Internal Error", "<p>Failed to register kiosk apps</p>");
 			}
 		} else {
-			url = "data:text/html,<title>Internal Error</title><h1>Failed to setup kiosk";
+			url = "data:text/html," + response_template("Internal Error", "<p>Failed to setup kiosk apps</p>");
 		}
 	}
 

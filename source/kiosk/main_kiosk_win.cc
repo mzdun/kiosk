@@ -1,54 +1,14 @@
 #include <windows.h>
-#include <paths.h>
 #include <tchar.h>
 #include <memory>
 #include <string>
 #include <vector>
+#include "main_kiosk.h"
+#include "../common/switches.h"
 
-#define JOIN2(A, B) A ## B
-#define JOIN(A, B) JOIN2(A, B)
-#define LAUNCHER_DIR_LIBW JOIN(L, LAUNCHER_DIR_LIB)
-
-#define DIRSEPW L"\\"
-#define LAUNCHER_LIBCEFW   JOIN(L, LAUNCHER_LIBCEF)
-#define LAUNCHER_RUNTIMEW  JOIN(L, LAUNCHER_RUNTIME)
-#define LAUNCHER_DIR_RTW  JOIN(L, LAUNCHER_DIR_RT)
-
-static constexpr wchar_t kCefSwitch[] = JOIN(L, CEF_SWITCH);
-static constexpr wchar_t kRuntimeSwitch[] = JOIN(L, RUNTIME_SWITCH);
-
-template <typename T>
-struct local
-{
-	struct free {
-		void operator()(T ptr) {
-			LocalFree(ptr);
-		}
-	};
-
-	using ptr = std::unique_ptr<T, free>;
-};
-
-template <size_t length>
-LPWSTR GetArg(LPWSTR arg, const wchar_t(&kSwitch)[length]) {
-	if (wcsncmp(kSwitch, arg, size(kSwitch) - 1))
-		return nullptr;
-
-	auto cand = arg + size(kSwitch) - 1;
-	if (*cand != '=')
-		return nullptr;
-	return cand + 1;
-}
-
-std::wstring GetAppDir() {
-	wchar_t buffer[2048];
-	GetModuleFileNameW(nullptr, buffer, size(buffer));
-	auto slash = wcsrchr(buffer, LAUNCHER_DIRSEP);
-	if (!slash)
-		slash = buffer;
-	*slash = 0;
-	return buffer;
-}
+static constexpr wchar_t kCefSwitch[] = L"--" _L(CEF_SWITCH);
+static constexpr wchar_t kRuntimeSwitch[] = L"--" _L(RUNTIME_SWITCH);
+static constexpr wchar_t kRootSwitch[] = L"--" _L(ROOT_SWITCH);
 
 auto GetEnv(LPCWSTR name) {
 	auto size = GetEnvironmentVariableW(name, nullptr, 0);
@@ -60,8 +20,8 @@ auto GetEnv(LPCWSTR name) {
 	return std::unique_ptr<wchar_t[]>{};
 }
 
-auto TryLoad(const std::wstring& dll) {
-	auto pos = dll.rfind(LAUNCHER_DIRSEP);
+bool TryLoad(const std::wstring& dll) {
+	auto pos = dll.rfind(LAUNCHER_DIRSEPC);
 	if (pos != std::string::npos) {
 		auto dir = dll.substr(0, pos);
 		auto path = GetEnv(L"PATH");
@@ -145,7 +105,7 @@ void Append(std::vector<wchar_t>& in, LPCWSTR text) {
 std::vector<wchar_t> BuildCommandLine(const std::wstring& process, int argc, wchar_t** argv) {
 	std::vector<wchar_t> out;
 
-	auto fname_pos = process.rfind(LAUNCHER_DIRSEP);
+	auto fname_pos = process.rfind(LAUNCHER_DIRSEPC);
 	if (fname_pos == std::string::npos)
 		fname_pos = 0;
 	else
@@ -193,60 +153,9 @@ int APIENTRY wWinMain(
 	{
 		int argc = 0;
 		local<LPWSTR[]>::ptr argv{ CommandLineToArgvW(GetCommandLineW(), &argc) };
+		auto runtime = FindRuntime(argc, argv.get(), kCefSwitch, kRuntimeSwitch, kRootSwitch);
 
-		LPWSTR cef_path = nullptr;
-		LPWSTR runtime_path = nullptr;
-		for (int i = 1; i < argc; ++i) {
-			auto arg = argv[i];
-			if (!cef_path) {
-				auto cand = GetArg(arg, kCefSwitch);
-				if (cand) {
-					cef_path = cand;
-					if (runtime_path) break;
-					continue;
-				}
-			}
-
-			if (!runtime_path) {
-				auto cand = GetArg(arg, kRuntimeSwitch);
-				if (cand) {
-					runtime_path = cand;
-					if (cef_path) break;
-					continue;
-				}
-			}
-		}
-
-		if (!cef_path) {
-#ifdef USE_CEF_ROOT
-			auto cef_root = GetEnv(L"CEF_ROOT");
-			if (cef_root) {
-#ifdef NDEBUG
-#define CONFIG L"Release"
-#else
-#define CONFIG L"Debug"
-#endif
-				std::wstring cefroot = cef_root.get();
-				auto lib = TryLoad(cefroot + DIRSEPW CONFIG DIRSEPW L"libcef.dll");
-				if (!lib)
-					return 1;
-			} else {
-#endif
-				auto lib = TryLoad(GetAppDir() + DIRSEPW LAUNCHER_DIR_LIBW DIRSEPW LAUNCHER_LIBCEFW);
-				if (!lib)
-					return 1;
-#ifdef USE_CEF_ROOT
-			}
-#endif
-		} else {
-			auto lib = TryLoad(cef_path);
-			if (!lib)
-				return 1;
-		}
-
-		auto runtime = runtime_path ? runtime_path : GetAppDir() + DIRSEPW LAUNCHER_DIR_RTW DIRSEPW LAUNCHER_RUNTIMEW;
-		auto exe = TryLoad(runtime);
-		if (!exe)
+		if (!TryLoad(runtime))
 			return 2;
 
 		auto cmdline = BuildCommandLine(runtime, argc, argv.get());

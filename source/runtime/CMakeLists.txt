@@ -15,13 +15,25 @@ set(LAUNCHER_PATHSEP ";")
 endif()
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/paths.h.in ${CMAKE_CURRENT_BINARY_DIR}/paths.h)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/paths_runtime.h.in ${CMAKE_CURRENT_BINARY_DIR}/paths_runtime.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 
 set(CEF_TARGET runtime)
+
+add_custom_command(
+	OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/template_contents.h"
+	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+	COMMAND python "../../tools/make_template.py"
+			--header
+			"--version=${TOPLEVEL_VERSION_MAJOR}.${TOPLEVEL_VERSION_MINOR}.${TOPLEVEL_VERSION_PATCH}${TOPLEVEL_VERSION_STABILITY}+${TOPLEVEL_VERSION_BUILD}"
+			-o "${CMAKE_CURRENT_BINARY_DIR}/template_contents.h"
+	MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/make_template.py"
+	DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../res/kiosk.svg"
+	COMMENT "Building response template header"
+)
 
 set(SRCS
 	runtime.cc
@@ -30,16 +42,19 @@ set(SRCS
 	embed.h
 	kiosk.cc
 	kiosk.h
+	template.cc
+	template.h
+	"${CMAKE_CURRENT_BINARY_DIR}/template_contents.h"
 )
 set(SRCS_LINUX
-	main_linux.cc
+	main_runtime_linux.cc
 	embed_linux.cc
 	runtime_linux.cc
 )
 set(SRCS_WINDOWS
 	runtime.exe.manifest
 	runtime.rc
-	main_win.cc
+	main_runtime_win.cc
 	embed_win.cc
 	runtime_win.cc
 )

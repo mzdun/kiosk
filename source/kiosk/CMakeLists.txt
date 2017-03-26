@@ -7,7 +7,7 @@ set(LAUNCHER_PATHSEP ";")
 endif()
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/paths.h.in ${CMAKE_CURRENT_BINARY_DIR}/paths.h)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/paths_kiosk.h.in ${CMAKE_CURRENT_BINARY_DIR}/paths_kiosk.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -18,7 +18,7 @@ elseif (WIN32)
 set(POSTFIX "win")
 endif()
 
-set(SRCS main_${POSTFIX}.cc)
+set(SRCS main_kiosk_${POSTFIX}.cc)
 
 if (UNIX)
 add_executable(kiosk ${SRCS})

@@ -3,11 +3,19 @@
 // can be found in the LICENSE file.
 
 #include <windows.h>
+#include <shellapi.h>
+#include <memory>
 
 #include "runtime.h"
 #include "ptr.h"
 #include "include/cef_sandbox_win.h"
 
+#include "main_runtime.h"
+#include "../common/switches.h"
+
+static constexpr wchar_t kRootSwitch[] = L"--" _L(ROOT_SWITCH);
+static constexpr wchar_t kResourcesSwitch[] = L"--" _L(RESOURCES_SWITCH);
+static constexpr wchar_t kLocalesSwitch[] = L"--" _L(LOCALES_SWITCH);
 
 // When generating projects with CMake the CEF_USE_SANDBOX value will be defined
 // automatically if using the required compiler version. Pass -DUSE_SANDBOX=OFF
@@ -21,7 +29,6 @@
 // link successfully with other VS versions.
 #pragma comment(lib, "cef_sandbox.lib")
 #endif
-
 
 // Entry point function for all processes.
 int APIENTRY wWinMain(HINSTANCE hInstance,
@@ -43,17 +50,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
   sandbox_info = scoped_sandbox.sandbox_info();
 #endif
 
-  // Provide CEF with command-line arguments.
   CefMainArgs main_args(hInstance);
 
-  // CEF applications have multiple sub-processes (render, plugin, GPU, etc)
-  // that share the same executable. This function checks the command-line and,
-  // if this is a sub-process, executes the appropriate logic.
   int exit_code = CefExecuteProcess(main_args, NULL, sandbox_info);
-  if (exit_code >= 0) {
-    // The sub-process has completed so return here.
+  if (exit_code >= 0)
     return exit_code;
-  }
 
   // Specify CEF global settings here.
   CefSettings settings;
@@ -62,19 +63,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
   settings.no_sandbox = true;
 #endif
 
-  // SimpleApp implements application-level callbacks for the browser process.
-  // It will create the first browser instance in OnContextInitialized() after
-  // CEF has initialized.
+  {
+	  int argc = 0;
+	  local<LPWSTR[]>::ptr argv{ CommandLineToArgvW(GetCommandLineW(), &argc) };
+
+	  UpdateSettings(settings, argc, argv.get(), kResourcesSwitch, kLocalesSwitch, kRootSwitch);
+  }
+
   auto app = CefPtr<Runtime>();
-
-  // Initialize CEF.
   CefInitialize(main_args, settings, app.get(), sandbox_info);
-
-  // Run the CEF message loop. This will block until CefQuitMessageLoop() is
-  // called.
   CefRunMessageLoop();
-
-  // Shut down CEF.
   CefShutdown();
 
   return 0;

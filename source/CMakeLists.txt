@@ -32,17 +32,21 @@ set(DATA_INST    ${SHARE_INST})         # .blob, .dat
 set(PLUGIN_INST  lib/kiosk/plugins)     # libpphue.so
 set(APPS_INST    share/kiosk/apps)      # kiosk:// apps
 
-set(DEF_LIB_DST  ${CMAKE_INSTALL_PREFIX}/${CEF_INST})
-set(DEF_RT_DST   ${CMAKE_INSTALL_PREFIX}/${SHARE_INST})
-set(DEF_APPS_DST ${CMAKE_INSTALL_PREFIX}/${SHARE_INST}/apps)
-set(DEF_PLUG_DST ${CMAKE_INSTALL_PREFIX}/${PLUGIN_INST})
+set(DEF_LIB_DST  ${CEF_INST})
+set(DEF_RT_DST   ${SHARE_INST})
+set(DEF_APPS_DST ${SHARE_INST}/apps)
+set(DEF_PLUG_DST ${PLUGIN_INST})
+set(DEF_RES_DST  ${RES_INST})
+set(DEF_LOC_DST  ${LOCALE_INST}/locales)
 
 set(KIOSK_CMAKE_BINARY_DIR   bin)
 set(RUNTIME_CMAKE_BINARY_DIR ${SHARE_INST})
 set(RESURCE_CMAKE_BINARY_DIR ${RES_INST})
 set(LOCALE_CMAKE_BINARY_DIR  ${LOCALE_INST})
 set(CEF_CMAKE_BINARY_DIR     ${CEF_INST})
-set(CEFDATA_CMAKE_BINARY_DIR ${CEF_CMAKE_BINARY_DIR})
+set(CEFDATA_CMAKE_BINARY_DIR ${RUNTIME_CMAKE_BINARY_DIR})
+set(RUNTIME_DIR_DEPTH ../../) # reverse of share/kiosk
+set(KIOSK_DIR_DEPTH ../) # reverse of bin
 else()
 set(SHARE_PREFIX "")
 set(LIB_PREFIX   "")
@@ -58,15 +62,19 @@ set(APPS_INST    apps)                  # kiosk:// apps
 
 set(DEF_LIB_DST  runtime\\\\lib)
 set(DEF_RT_DST   ${SHARE_INST})
-set(DEF_APPS_DST ..\\\\${APPS_INST})
-set(DEF_PLUG_DST ..\\\\${PLUGIN_INST})
+set(DEF_APPS_DST ${APPS_INST})
+set(DEF_PLUG_DST ${PLUGIN_INST})
+set(DEF_RES_DST  ${RES_INST})
+set(DEF_LOC_DST  locales)
+set(RUNTIME_DIR_DEPTH ..\\\\)
+set(KIOSK_DIR_DEPTH "")
 
 set(KIOSK_CMAKE_BINARY_DIR   kiosk)
 set(RUNTIME_CMAKE_BINARY_DIR kiosk/${SHARE_INST})
 set(RESURCE_CMAKE_BINARY_DIR kiosk/${RES_INST})
 set(CEF_CMAKE_BINARY_DIR     kiosk/${CEF_INST})
 set(LOCALE_CMAKE_BINARY_DIR  kiosk)
-set(CEFDATA_CMAKE_BINARY_DIR ${RUNTIME_CMAKE_BINARY_DIR})
+set(CEFDATA_CMAKE_BINARY_DIR ${CEF_CMAKE_BINARY_DIR})
 endif()
 
 set(RUNTIME_DST DATA_DST)

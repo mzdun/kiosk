@@ -4,10 +4,16 @@
 
 #include "runtime.h"
 #include "ptr.h"
+#include "main_runtime.h"
+#include "../common/switches.h"
 
 #include <X11/Xlib.h>
 
 #include "include/base/cef_logging.h"
+
+static constexpr char kRootSwitch[] = "--" ROOT_SWITCH;
+static constexpr char kResourcesSwitch[] = "--" RESOURCES_SWITCH;
+static constexpr char kLocalesSwitch[] = "--" LOCALES_SWITCH;
 
 namespace {
 
@@ -31,15 +37,9 @@ int XIOErrorHandlerImpl(Display *display) {
 
 // Entry point function for all processes.
 int main(int argc, char* argv[]) {
-  // Provide CEF with command-line arguments.
   CefMainArgs main_args(argc, argv);
-  
-  // CEF applications have multiple sub-processes (render, plugin, GPU, etc)
-  // that share the same executable. This function checks the command-line and,
-  // if this is a sub-process, executes the appropriate logic.
   int exit_code = CefExecuteProcess(main_args, NULL, NULL);
   if (exit_code >= 0) {
-    // The sub-process has completed so return here.
     return exit_code;
   }
 
@@ -48,22 +48,13 @@ int main(int argc, char* argv[]) {
   XSetErrorHandler(XErrorHandlerImpl);
   XSetIOErrorHandler(XIOErrorHandlerImpl);
 
-  // Specify CEF global settings here.
   CefSettings settings;
 
-  // SimpleApp implements application-level callbacks for the browser process.
-  // It will create the first browser instance in OnContextInitialized() after
-  // CEF has initialized.
+  UpdateSettings(settings, argc, argv, kResourcesSwitch, kLocalesSwitch, kRootSwitch);
+
   auto app = CefPtr<Runtime>();
-
-  // Initialize CEF for the browser process.
   CefInitialize(main_args, settings, app.get(), NULL);
-
-  // Run the CEF message loop. This will block until CefQuitMessageLoop() is
-  // called.
   CefRunMessageLoop();
-
-  // Shut down CEF.
   CefShutdown();
 
   return 0;

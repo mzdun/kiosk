@@ -1,0 +1,3 @@
+-Dtitle=Kiosk installed
+-Dheader=Kiosk installed
+-Dcontent=<p>This is the default Kiosk application.</p><p>To use another application, either install it in place of this one, or install it side by side and call <tt>kiosk</tt> with the name of other application.</p>

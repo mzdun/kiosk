@@ -12,7 +12,7 @@ public:
 	// CefApp methods:
 	CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override { return this; }
 	void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
-	// TODO: Use OnBeforeCommandLineProcessing for auto-registering plugins
+	void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
 
 	// CefBrowserProcessHandler methods:
 	void OnContextInitialized() override;

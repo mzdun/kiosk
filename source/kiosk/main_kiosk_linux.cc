@@ -7,8 +7,12 @@
 #include <unistd.h>
 #include <vector>
 
-static constexpr char kCefSwitch[] = CEF_SWITCH;
-static constexpr char kRuntimeSwitch[] = RUNTIME_SWITCH;
+#include "main_kiosk.h"
+#include "../common/switches.h"
+
+static constexpr char kCefSwitch[] = "--" CEF_SWITCH;
+static constexpr char kRuntimeSwitch[] = "--" RUNTIME_SWITCH;
+static constexpr char kRootSwitch[] = "--" ROOT_SWITCH;
 
 template <size_t length>
 const char* GetArg(const char* arg, const char(&kSwitch)[length]) {
@@ -31,7 +35,7 @@ struct so {
 	using handle = std::unique_ptr<void, closer>;
 };
 
-so::handle TryLoad(const std::string& module) {
+bool TryLoad(const std::string& module) {
 	auto pos = module.rfind(LAUNCHER_DIRSEP);
 	if (pos != std::string::npos) {
 		auto dir = module.substr(0, pos);
@@ -50,61 +54,7 @@ so::handle TryLoad(const std::string& module) {
 		fprintf(stderr, "kiosk: %s\n", dlerror());
 	}
 
-	return out;
-}
-
-std::string FindRuntime(int argc, char* argv[]) {
-	const char* cef_path = nullptr;
-	const char* runtime_path = nullptr;
-	for (int i = 1; i < argc; ++i) {
-		auto arg = argv[i];
-		if (!cef_path) {
-			auto cand = GetArg(arg, kCefSwitch);
-			if (cand) {
-				cef_path = cand;
-				if (runtime_path) break;
-				continue;
-			}
-		}
-
-		if (!runtime_path) {
-			auto cand = GetArg(arg, kRuntimeSwitch);
-			if (cand) {
-				runtime_path = cand;
-				if (cef_path) break;
-				continue;
-			}
-		}
-	}
-
-	if (!cef_path) {
-#ifdef USE_CEF_ROOT
-		auto cef_root = getenv("CEF_ROOT");
-		if (cef_root) {
-#ifdef NDEBUG
-#define CONFIG "Release"
-#else
-#define CONFIG "Debug"
-#endif
-			std::string cefroot = cef_root;
-			auto lib = TryLoad(cefroot + LAUNCHER_DIRSTR CONFIG LAUNCHER_DIRSTR LAUNCHER_LIBCEF);
-			if (!lib)
-				return {};
-		} else {
-#endif
-			auto lib = TryLoad(LAUNCHER_DIR_LIB LAUNCHER_DIRSTR LAUNCHER_LIBCEF);
-			if (!lib)
-				return {};
-#ifdef USE_CEF_ROOT
-		}
-#endif
-	} else {
-		auto lib = TryLoad(cef_path);
-		if (!lib)
-			return {};
-	}
-
-	return runtime_path ? runtime_path : LAUNCHER_DIR_RT LAUNCHER_DIRSTR LAUNCHER_RUNTIME;
+	return !!out;
 }
 
 int main(int argc, char* argv[])
@@ -112,7 +62,7 @@ int main(int argc, char* argv[])
 	pid_t child = 0;
 
 	{
-		auto runtime = FindRuntime(argc, argv);
+		auto runtime = FindRuntime(argc, argv, kCefSwitch, kRuntimeSwitch, kRootSwitch);
 		if (runtime.empty())
 			return 1;
 
@@ -120,7 +70,7 @@ int main(int argc, char* argv[])
 		if (!child) {
 			std::vector<char*> args(argc + 1);
 			args[0] = &runtime[0];
-			int j = 0;
+			int j = 1;
 			for (int i = 1; i < argc; ++i) {
 				if (GetArg(argv[i], kCefSwitch) ||
 					GetArg(argv[i], kRuntimeSwitch))
