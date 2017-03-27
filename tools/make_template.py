@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description='Creates a built-in file template f
 parser.add_argument('--header', action='store_true', default=False, help='Output as if in include file')
 parser.add_argument('--version', metavar='V', help='Kiosk version for the footer.', required=True)
 parser.add_argument('-D', metavar='NAME=VALUE', action='append', help='Variables for the template to use')
-parser.add_argument('-o', metavar='PATH', help='Kiosk version for the footer.', required=True)
+parser.add_argument('-o', metavar='PATH', help='Output filename.', required=True)
 
 args = parser.parse_args()
 
